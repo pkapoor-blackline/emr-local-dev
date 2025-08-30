@@ -2,74 +2,111 @@ version: "2"
 
 services:
   spark:
-    image: emr-6.5.0:20211119
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: amazon/aws-glue-libs:glue_libs_4.0.0_image_01
     container_name: spark
     command: /bin/bash -c "while sleep 1000; do :; done"
+    environment:
+      - AWS_REGION=us-east-1
+      - AWS_PROFILE=datadev
+    networks:
+      - emr-local-dev
+    volumes:
+      - ${PWD}:/home/hadoop/spark-repo:rw
+      - /home/pkapoor/repos:/home/hadoop/repos:ro
+      - ${HOME}/.aws:/home/hadoop/.aws:rw
+
+  glue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: amazon/aws-glue-libs:glue_libs_4.0.0_image_01
+    container_name: spark
+    command: /bin/bash -c "while sleep 1000; do :; done"
+    environment:
+      - AWS_REGION=us-east-1
+      - AWS_PROFILE=datadev
     networks:
       - spark
     volumes:
-      - ${PWD}:/home/hadoop/repo
-      - ${HOME}/.aws:/home/hadoop/.aws
+      - ${PWD}:/home/hadoop/spark-repo:rw
+      - /home/pkapoor/repos:/home/hadoop/repos:ro
+      - ${HOME}/.aws:/home/hadoop/.aws:rw
+
   zookeeper:
-    image: bitnami/zookeeper:3.7.0
+    image: bitnami/zookeeper:3.5
     container_name: zookeeper
     ports:
-      - "2181:2181"
+      - "2181"
     networks:
-      - spark
+      - emr-local-dev
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
+    volumes:
+      - zookeeper_data:/bitnami/zookeeper
+
   kafka:
     image: bitnami/kafka:2.8.1
     container_name: kafka
+    expose:
+      - 9092
     ports:
-      - "9092:9092"
+      - "29092:29092"
     networks:
-      - spark
+      - emr-local-dev
     environment:
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_BROKER_ID=0
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,EXTERNAL://:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-0:9092,EXTERNAL://localhost:29092
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_NUM_PARTITIONS=3
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
+    volumes:
+      - kafka_data:/bitnami/kafka
     depends_on:
       - zookeeper
+
   kafka-ui:
-    image: provectuslabs/kafka-ui:0.3.3
+    image: provectuslabs/kafka-ui:v0.7.1
     container_name: kafka-ui
     ports:
       - "8080:8080"
     networks:
-      - spark
+      - emr-local-dev
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
-      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://registry:8080/apis/ccompat/v6
-      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: local
-      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
     depends_on:
       - zookeeper
       - kafka
+
   kafka-connect:
     image: bitnami/kafka:2.8.1
-    container_name: connect
+    container_name: kafka-connect
     command: >
       /opt/bitnami/kafka/bin/connect-distributed.sh
       /opt/bitnami/kafka/config/connect-distributed.properties
     ports:
       - "8083:8083"
     networks:
-      - spark
+      - emr-local-dev
     environment:
       AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
       AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
       AWS_SESSION_TOKEN: $AWS_SESSION_TOKEN
     volumes:
-      - "./connect/src/debezium-connector-postgres:/opt/connectors/debezium-postgres"
-      - "./connect/src/confluent-s3/lib:/opt/connectors/confluent-s3"
-      - "./connect/src/voluble/lib:/opt/connectors/voluble"
+      - "./connect/src/:/opt/connectors/"
       - "./connect/config/connect-distributed.properties:/opt/bitnami/kafka/config/connect-distributed.properties"
     depends_on:
       - zookeeper
       - kafka
+
   postgres:
     image: postgres:13
     container_name: postgres
@@ -77,13 +114,14 @@ services:
     ports:
       - 5432:5432
     networks:
-      - spark
+      - emr-local-dev
     volumes:
       - ./connect/sql:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_DB=main
       - POSTGRES_USER=master
       - POSTGRES_PASSWORD=password
+
   registry:
     image: apicurio/apicurio-registry-sql:2.2.0.Final
     container_name: registry
@@ -91,7 +129,7 @@ services:
     ports:
       - "9090:8080"
     networks:
-      - spark
+      - emr-local-dev
     environment:
       REGISTRY_DATASOURCE_URL: "jdbc:postgresql://postgres/main?currentSchema=registry"
       REGISTRY_DATASOURCE_USERNAME: master
@@ -102,5 +140,5 @@ services:
       - postgres
 
 networks:
-  spark:
-    name: spark
+  emr-local-dev:
+    name: emr-local-dev
