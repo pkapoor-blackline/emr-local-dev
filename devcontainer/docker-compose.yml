@@ -1,45 +1,48 @@
-version: "2"
+---
 
 services:
   spark:
     build:
       context: .
       dockerfile: Dockerfile
-    image: amazon/aws-glue-libs:glue_libs_4.0.0_image_01
+    image: spark-emr-6.7.0:latest
     container_name: spark
     command: /bin/bash -c "while sleep 1000; do :; done"
+    ports:
+      - "4040:4040"
+    working_dir: /home/hadoop/workspace
     environment:
       - AWS_REGION=us-east-1
       - AWS_PROFILE=datadev
     networks:
       - emr-local-dev
     volumes:
-      - ${PWD}:/home/hadoop/spark-repo:rw
-      - /home/pkapoor/repos:/home/hadoop/repos:ro
       - ${HOME}/.aws:/home/hadoop/.aws:rw
+      - ${PWD}:/home/hadoop/workspace/:rw
+      - /home/pkapoor/repos:/home/hadoop/workspace/repos:ro
 
   glue:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: amazon/aws-glue-libs:glue_libs_4.0.0_image_01
-    container_name: spark
-    command: /bin/bash -c "while sleep 1000; do :; done"
+    image: public.ecr.aws/glue/aws-glue-libs:5
+    container_name: glue
+    command: -c "while sleep 1000; do :; done"
+    ports:
+      - "4041:4040"
+    working_dir: /home/hadoop/workspace
     environment:
       - AWS_REGION=us-east-1
       - AWS_PROFILE=datadev
     networks:
-      - spark
+      - emr-local-dev
     volumes:
-      - ${PWD}:/home/hadoop/spark-repo:rw
-      - /home/pkapoor/repos:/home/hadoop/repos:ro
       - ${HOME}/.aws:/home/hadoop/.aws:rw
+      - ${PWD}:/home/hadoop/workspace/:rw
+      - /home/pkapoor/repos:/home/hadoop/workspace/repos:ro
 
   zookeeper:
     image: bitnami/zookeeper:3.5
     container_name: zookeeper
     ports:
-      - "2181"
+      - "2181:2181"
     networks:
       - emr-local-dev
     environment:
@@ -62,7 +65,7 @@ services:
       - KAFKA_CFG_BROKER_ID=0
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
       - KAFKA_CFG_LISTENERS=INTERNAL://:9092,EXTERNAL://:29092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-0:9092,EXTERNAL://localhost:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,EXTERNAL://localhost:29092
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
       - KAFKA_CFG_NUM_PARTITIONS=3
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
@@ -106,6 +109,7 @@ services:
     depends_on:
       - zookeeper
       - kafka
+      - kafka-ui
 
   postgres:
     image: postgres:13
@@ -142,3 +146,7 @@ services:
 networks:
   emr-local-dev:
     name: emr-local-dev
+
+volumes:
+  kafka_data:
+  zookeeper_data:
