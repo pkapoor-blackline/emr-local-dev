@@ -1,0 +1,3 @@
+[submodule "devcontainer/workaround/vscode-sysroot"]
+	path = devcontainer/workaround/vscode-sysroot
+	url = git@github.com:pkapoor-blackline/vscode-sysroot.git
