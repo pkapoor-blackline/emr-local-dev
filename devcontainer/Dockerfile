@@ -27,8 +27,14 @@ COPY ./spark/log4j.properties     /usr/lib/spark/conf/log4j.properties
 # Python requirements
 # -------------------------------------------------------------------
 COPY ./pkgs /tmp/pkgs
-RUN python3 -m pip install --no-cache-dir boto3 awscli-local \
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip" \
+    && unzip /tmp/awscliv2.zip -d /tmp \
+    && /tmp/aws/install \
+    && rm -rf /tmp/aws /tmp/awscliv2.zip \
+    && python3 -m pip install --no-cache-dir boto3 awscli-local \
     && python3 -m pip install --no-cache-dir -r /tmp/pkgs/requirements.txt
+
+COPY ./pkgs /tmp/pkgs
 
 USER hadoop
 WORKDIR /home/hadoop/
