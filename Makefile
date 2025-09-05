@@ -1,6 +1,6 @@
 # Makefile for devcontainers setup
 
-COMPOSE_FILE=./devcontainer/docker-compose.yml
+COMPOSE_FILE=docker-compose.yml
 PROJECT_NAME=emr-local-dev
 
 SERVICES = spark glue zookeeper kafka kafka-ui kafka-connect postgres registry
@@ -34,40 +34,40 @@ help:
 # -----------------
 
 build:
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) build
+	cd ${PWD}/devcontainer/ && docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) build
 
 up:
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
+	cd ${PWD}/devcontainer/ && docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d
 
 down:
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) down
+	cd ${PWD}/devcontainer/ && docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) down
 
 restart: down up
 
 logs:
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) logs -f
+	cd ${PWD}/devcontainer/ && docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) logs -f
 
 ps:
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) ps
+	cd ${PWD}/devcontainer/ && docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) ps
 
 clean:
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) down -v --remove-orphans
+	cd ${PWD}/devcontainer/ && docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) down -v --remove-orphans
 
 # -----------------
 # Per-service targets
 # -----------------
 
 $(addprefix up-,$(SERVICES)):
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d $(@:up-%=%)
+	cd ${PWD}/devcontainer/ && docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) up -d $(@:up-%=%)
 
 $(addprefix down-,$(SERVICES)):
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) stop $(@:down-%=%)
+	cd ${PWD}/devcontainer/ && docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) stop $(@:down-%=%)
 
 $(addprefix restart-,$(SERVICES)):
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) restart $(@:restart-%=%)
+	cd ${PWD}/devcontainer/ && docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) restart $(@:restart-%=%)
 
 $(addprefix logs-,$(SERVICES)):
-	docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) logs -f $(@:logs-%=%)
+	cd ${PWD}/devcontainer/ && docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME) logs -f $(@:logs-%=%)
 
 $(addprefix bash-,$(SERVICES)):
-	docker exec -it $(@:bash-%=%) bash
+	cd ${PWD}/devcontainer/ && docker exec -it $(@:bash-%=%) bash

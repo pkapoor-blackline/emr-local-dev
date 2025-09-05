@@ -44,11 +44,7 @@ ENV AWS_REGION=us-east-1
 ENV AWS_PROFILE=datadev
 
 # Bashrc aliases
-RUN echo "AWS_PROFILE=datadev" >> /home/hadoop/.bashrc \
-    && echo "AWS_REGION=us-east-1" >> /home/hadoop/.bashrc \
-    && echo "alias awsExport='eval \$(aws configure export-credentials --profile \${AWS_PROFILE:-datadev} --format env)'" >> /home/hadoop/.bashrc \
-    && echo "alias ss='spark-shell --master local[*] --conf spark.sql.shuffle.partitions=10'" >> /home/hadoop/.bashrc \
-    && echo "alias ss_delta='spark-shell --master local[*] --packages io.delta:delta-core_2.12:2.0.2,org.apache.hadoop:hadoop-aws:3.2.1 --conf spark.delta.logStore.class=org.apache.spark.sql.delta.storage.S3SingleDriverLogStore --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog --conf spark.sql.shuffle.partitions=10'" >> /home/hadoop/.bashrc \
+RUN touch /home/hadoop/.bashrc \
     && chown hadoop:hadoop /home/hadoop/.bashrc
 
 CMD ["bash", "-l"]
