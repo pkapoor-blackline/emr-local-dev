@@ -18,13 +18,8 @@ touch ~/.bashrc \
 # Bash profile
 touch ~/.bash_profile \
     && echo 'if [ -f ~/.bashrc ]; then' >> ~/.bash_profile \
-    
     && echo '    . ~/.bashrc' >> ~/.bash_profile \
     && echo 'fi' >> ~/.bash_profile \
-
-# Install sysroot for older linus - vs-code issue workaround
-mkdir -p /home/hadoop/.vscode-server/sysroot
-tar zxf ${SCRIPT_DIR}/vscode-sysroot/toolchain/vscode-sysroot-x86_64-linux-gnu.tgz -C ~/.vscode-server 2>/dev/null
 
 # Need ssh to connect to container
 sudo yum install -y openssh-server && \
@@ -55,6 +50,13 @@ sudo chmod -R g+rwx /home/hadoop/workspace/ >> /home/hadoop/permissions.out 2>&1
 # add read access of the .aws folder to the group
 sudo chmod -R g+rx /home/hadoop/.aws >> /home/hadoop/permissions.out 2>&1
 sudo chmod -R g+rx /home/hadoop/.ssh >> /home/hadoop/permissions.out 2>&1
+# vscode server dir
+sudo chmod -R g+rx /home/hadoop/.vscode-server >> /home/hadoop/permissions.out 2>&1
+sudo chown -R hadoop:local_users /home/hadoop/.vscode-server
+
+# Install sysroot for older linux - vs-code issue workaround
+mkdir -p /home/hadoop/.vscode-server/sysroot
+tar zxf ${SCRIPT_DIR}/vscode-sysroot/toolchain/vscode-sysroot-x86_64-linux-gnu.tgz -C ~/.vscode-server 2>/dev/null
 
 # Start listening to ssh
 sudo /usr/sbin/sshd -D -e

@@ -24,6 +24,7 @@ services:
       - ${PWD}/workaround/vscode-sysroot/toolchain/vscode-sysroot-x86_64-linux-gnu.tgz:/home/hadoop/vscode-sysroot-x86_64-linux-gnu.tgz:ro
       - ${PWD}/..:/home/hadoop/workspace/:rw
       - ${HOME}/repos:/home/hadoop/workspace/repos:ro
+      - spark_vscode_server:/home/hadoop/.vscode-server/
 
   glue:
     image: public.ecr.aws/glue/aws-glue-libs:5
@@ -45,6 +46,7 @@ services:
       - ${PWD}/workaround/vscode-sysroot/toolchain/vscode-sysroot-x86_64-linux-gnu.tgz:/home/hadoop/vscode-sysroot-x86_64-linux-gnu.tgz:ro
       - ${PWD}/..:/home/hadoop/workspace/:rw
       - ${HOME}/repos:/home/hadoop/workspace/repos:ro
+      - glue_vscode_server:/home/hadoop/.vscode-server/
 
   zookeeper:
     image: bitnami/zookeeper:3.5
@@ -156,5 +158,7 @@ networks:
     name: emr-local-dev
 
 volumes:
+  spark_vscode_server:
+  glue_vscode_server:
   kafka_data:
   zookeeper_data:
