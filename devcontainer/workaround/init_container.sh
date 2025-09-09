@@ -9,8 +9,10 @@ touch ~/.bashrc \
     && echo "export VSCODE_SERVER_CUSTOM_GLIBC_LINKER=$HOME/.vscode-server/sysroot/lib/ld-linux-x86-64.so.2" >> ~/.bashrc \
     && echo "export VSCODE_SERVER_CUSTOM_GLIBC_PATH=$HOME/.vscode-server/sysroot/usr/lib:$HOME/.vscode-server/sysroot/lib" >> ~/.bashrc \
     && echo "export VSCODE_SERVER_PATCHELF_PATH=$HOME/.vscode-server/sysroot/usr/bin/patchelf" >> ~/.bashrc \
-    && echo "AWS_PROFILE=datadev" >> /home/hadoop/.bashrc \
-    && echo "AWS_REGION=us-east-1" >> /home/hadoop/.bashrc \
+    && echo "export AWS_PROFILE=datadev" >> /home/hadoop/.bashrc \
+    && echo "export AWS_REGION=us-east-1" >> /home/hadoop/.bashrc \
+    && echo "export AWS_DEFAULT_REGION=us-east-1" >> /home/hadoop/.bashrc \
+    && echo "export AWS_EC2_METADATA_DISABLED=true" >> /home/hadoop/.bashrc \
     && echo "alias awsExport='eval \$(aws configure export-credentials --profile \${AWS_PROFILE:-datadev} --format env)'" >> /home/hadoop/.bashrc \
     && echo "alias ss='spark-shell --master local[*] --conf spark.sql.shuffle.partitions=10'" >> /home/hadoop/.bashrc \
     && echo "alias ss_delta='spark-shell --master local[*] --packages io.delta:delta-core_2.12:2.0.2,org.apache.hadoop:hadoop-aws:3.2.1 --conf spark.delta.logStore.class=org.apache.spark.sql.delta.storage.S3SingleDriverLogStore --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog --conf spark.sql.shuffle.partitions=10'" >> /home/hadoop/.bashrc \
